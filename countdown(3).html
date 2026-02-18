@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIE Exam Countdown 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #080e10;
+    --surface: #0d1a1e;
+    --border:  #133640;
+    --teal:    #2dd4bf;
+    --teal-dim:#1a7a6e;
+    --teal-glow: rgba(45,212,191,0.12);
+    --text:    #cde8e5;
+    --muted:   #4a7a76;
+    --bright:  #5efef0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Radial glow backdrop */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 50%, rgba(45,212,191,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 80%, rgba(45,212,191,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Fine grid */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(45,212,191,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,212,191,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* Corner marks */
+  .corner {
+    position: fixed;
+    width: 18px;
+    height: 18px;
+    opacity: 0.35;
+  }
+  .corner.tl { top: 22px; left: 22px; border-top: 1px solid var(--teal); border-left: 1px solid var(--teal); }
+  .corner.tr { top: 22px; right: 22px; border-top: 1px solid var(--teal); border-right: 1px solid var(--teal); }
+  .corner.bl { bottom: 22px; left: 22px; border-bottom: 1px solid var(--teal); border-left: 1px solid var(--teal); }
+  .corner.br { bottom: 22px; right: 22px; border-bottom: 1px solid var(--teal); border-right: 1px solid var(--teal); }
+
+  .side-text {
+    position: fixed;
+    font-size: 0.42rem;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    opacity: 0.6;
+  }
+  .side-text.left  { left: 14px; top: 50%; transform: translateX(-50%) rotate(-90deg); transform-origin: left center; }
+  .side-text.right { right: 14px; top: 50%; transform: translateX(50%) rotate(90deg); transform-origin: right center; }
+
+  /* ---- Container ---- */
+  .container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem 2.5rem;
+    max-width: 720px;
+    width: 100%;
+  }
+
+  /* Accent bar */
+  .accent-bar {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    margin-bottom: 2.5rem;
+    animation: expandBar 1.4s cubic-bezier(0.22,1,0.36,1) both;
+    transform-origin: center;
+  }
+  @keyframes expandBar {
+    from { transform: scaleX(0); opacity: 0; }
+    to   { transform: scaleX(1); opacity: 1; }
+  }
+
+  /* Eyebrow */
+  .eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.75rem;
+    animation: fadeUp 1s ease both;
+  }
+  .eyebrow span { opacity: 0.5; margin: 0 0.5em; }
+
+  /* Main title */
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.2rem, 11vw, 7.5rem);
+    letter-spacing: 0.05em;
+    line-height: 0.88;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    animation: fadeUp 1s 0.08s ease both;
+    text-shadow: 0 0 60px rgba(45,212,191,0.2);
+  }
+  .title .hi { color: var(--teal); }
+
+  /* Subtitle */
+  .subtitle {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    animation: fadeUp 1s 0.16s ease both;
+  }
+
+  /* Tagline */
+  .tagline {
+    font-size: 0.72rem;
+    color: var(--text);
+    opacity: 0.5;
+    font-style: italic;
+    margin-bottom: 2.8rem;
+    letter-spacing: 0.05em;
+    animation: fadeUp 1s 0.22s ease both;
+  }
+
+  /* ---- Clock ---- */
+  .clock-outer {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    background: var(--border);
+    gap: 1px;
+    margin-bottom: 1.8rem;
+    animation: fadeUp 1s 0.32s ease both;
+    position: relative;
+    box-shadow: 0 0 40px rgba(45,212,191,0.07), inset 0 0 0 1px rgba(45,212,191,0.05);
+  }
+  .clock-outer::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 1px solid var(--teal-dim);
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  .unit {
+    background: var(--surface);
+    padding: 1.8rem 1.4rem 1.4rem;
+    position: relative;
+    min-width: 108px;
+    flex: 1;
+  }
+
+  /* Subtle glow behind the active unit (hours) */
+  .unit:nth-child(3) { background: linear-gradient(160deg, #0f2025 0%, var(--surface) 100%); }
+  .unit:nth-child(3) .num { color: var(--bright); text-shadow: 0 0 30px rgba(94,254,240,0.4); }
+
+  .num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    line-height: 1;
+    display: block;
+    color: var(--teal);
+    will-change: transform;
+    text-shadow: 0 0 20px rgba(45,212,191,0.25);
+  }
+  .num.tick {
+    animation: tick 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .unit-label {
+    display: block;
+    font-size: 0.48rem;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.7rem;
+  }
+
+  .unit::after {
+    content: attr(data-idx);
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 0.42rem;
+    color: var(--teal-dim);
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+  }
+
+  /* Separator */
+  .sep {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--teal-dim);
+    width: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ---- Progress ---- */
+  .progress-wrap {
+    width: 100%;
+    border: 1px solid var(--border);
+    height: 3px;
+    margin-bottom: 0.6rem;
+    position: relative;
+    animation: fadeUp 1s 0.42s ease both;
+    background: rgba(45,212,191,0.04);
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-dim), var(--teal));
+    transition: width 1s linear;
+    position: relative;
+  }
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: -3px;
+    width: 2px; height: 9px;
+    background: var(--bright);
+    box-shadow: 0 0 6px var(--teal);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.48rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+    animation: fadeUp 1s 0.45s ease both;
+  }
+
+  /* ---- Info Row ---- */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    animation: fadeUp 1s 0.5s ease both;
+    gap: 1rem;
+  }
+  .info-item {
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+  }
+  .info-item strong {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text);
+    margin-top: 3px;
+    letter-spacing: 0.08em;
+  }
+  .info-item strong.hi { color: var(--teal); }
+
+  /* ---- Motivational strip ---- */
+  .motto {
+    border-top: 1px solid var(--border);
+    padding-top: 1.2rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    animation: fadeUp 1s 0.58s ease both;
+    line-height: 1.8;
+  }
+  .motto strong { color: var(--teal); font-weight: 700; }
+
+  /* ---- Done ---- */
+  .done-message {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    display: none;
+    text-shadow: 0 0 60px rgba(45,212,191,0.5);
+  }
+
+  /* Keyframes */
+  @keyframes tick {
+    0%   { transform: translateY(-10px); opacity: 0.3; }
+    100% { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.12; }
+  }
+</style>
+</head>
+<body>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="side-text left">Cambridge International Examinations — May/June 2026 Series</div>
+<div class="side-text right">First Paper: 27 April 2026 — Stay Focused. Stay Consistent.</div>
+
+<div class="container">
+  <div class="accent-bar"></div>
+
+  <div class="eyebrow">● Cambridge Assessment International Education <span>|</span> May / June 2026</div>
+  <div class="title">CIE <span class="hi">Exams</span></div>
+  <div class="subtitle">A-Level &amp; IGCSE · First Paper Begins April 27, 2026</div>
+  <div class="tagline" id="tip-box">"…"</div>
+
+  <div class="clock-outer" id="clock">
+    <div class="unit" data-idx="01">
+      <span class="num" id="d">000</span>
+      <span class="unit-label">Days</span>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit" data-idx="02">
+      <span class="num" id="h">00</span>
+      <span class="unit-label">Hours</span>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit" data-idx="03">
+      <span class="num" id="m">00</span>
+      <span class="unit-label">Minutes</span>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit" data-idx="04">
+      <span class="num" id="s">00</span>
+      <span class="unit-label">Seconds</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progress"></div>
+  </div>
+  <div class="progress-label">
+    <span>Prep window progress</span>
+    <span id="pct">0.000%</span>
+  </div>
+
+  <div class="info-row">
+    <div class="info-item">Study Time Left<strong class="hi" id="rem-s">—</strong></div>
+    <div class="info-item">Exam Session<strong>May / Jun 2026</strong></div>
+    <div class="info-item">Board<strong>Cambridge (CIE)</strong></div>
+    <div class="info-item">Alert Level<strong id="status">On Track</strong></div>
+  </div>
+
+  <div class="motto">
+    Revise past papers &nbsp;·&nbsp; <strong>Master your mark schemes</strong> &nbsp;·&nbsp; Rest before exam week &nbsp;·&nbsp; You've got this.
+  </div>
+
+  <div class="done-message" id="done">Exam Season Has Begun — Good Luck! ✦</div>
+
+  <div style="margin-top: 2.2rem; font-size: 0.42rem; letter-spacing: 0.25em; color: var(--muted); opacity: 0.4; text-transform: lowercase; animation: fadeUp 1s 0.65s ease both;">
+    made with love by shahzeb ♥
+  </div>
+</div>
+
+<script>
+  const TIPS = [
+    "Start revision early, avoid last-minute cramming.",
+    "Make a realistic weekly study timetable.",
+    "Use active recall, not just rereading notes.",
+    "Practice past papers under timed conditions.",
+    "Mark your answers using official mark schemes.",
+    "Focus on weak topics first.",
+    "Revise little and often each day.",
+    "Take short breaks every 45 minutes.",
+    "Teach someone else the topic.",
+    "Use flashcards for key definitions.",
+    "Summarize chapters in your own words.",
+    "Practice exam technique, not just content.",
+    "Read every question carefully twice.",
+    "Highlight command words in questions.",
+    "Answer the exact question asked.",
+    "Show all working in maths exams.",
+    "Write clear, structured paragraphs.",
+    "Use PEEL for long answers.",
+    "Check units in science calculations.",
+    "Memorize key formulas and equations.",
+    "Revise definitions word-for-word when required.",
+    "Practice spelling key terminology correctly.",
+    "Use diagrams to help explain answers.",
+    "Time yourself for each section.",
+    "Do not spend too long on one question.",
+    "Attempt every question, even guesses.",
+    "Stay hydrated before and during exams.",
+    "Get at least eight hours sleep.",
+    "Eat a balanced meal before exams.",
+    "Avoid comparing answers after exams.",
+    "Stay calm if you feel stuck.",
+    "Move on and return later.",
+    "Underline key data in word problems.",
+    "Revise using multiple sources.",
+    "Watch short revision videos for clarity.",
+    "Create mind maps for big topics.",
+    "Use mnemonics to remember lists.",
+    "Review mistakes from past papers.",
+    "Practice calculator skills beforehand.",
+    "Check calculator battery before exam.",
+    "Write neatly and clearly.",
+    "Plan essays before writing fully.",
+    "Learn required practicals thoroughly.",
+    "Memorize case studies for geography.",
+    "Revise quotes for English literature.",
+    "Practice analysing unseen texts.",
+    "Revise key dates for history.",
+    "Understand mark allocation per question.",
+    "Structure answers according to marks.",
+    "Use correct scientific terminology.",
+    "Do not leave revision too late.",
+    "Set small daily revision goals.",
+    "Reward yourself after study sessions.",
+    "Study in a distraction-free environment.",
+    "Turn off phone notifications.",
+    "Use spaced repetition regularly.",
+    "Review notes within 24 hours.",
+    "Practice mental maths daily.",
+    "Memorize key vocabulary for languages.",
+    "Practice speaking for language exams.",
+    "Listen to language audio clips.",
+    "Learn common exam question patterns.",
+    "Revise graphs and data interpretation.",
+    "Use bullet points for planning.",
+    "Keep answers concise but detailed.",
+    "Answer higher-mark questions thoroughly.",
+    "Revise examiner reports for insight.",
+    "Use past paper trends wisely.",
+    "Stay positive and confident.",
+    "Visualize exam success beforehand.",
+    "Organize notes by subject.",
+    "Label diagrams clearly.",
+    "Check punctuation in English answers.",
+    "Revise ethical issues in science.",
+    "Know definitions of key concepts.",
+    "Practice writing introductions and conclusions.",
+    "Read instructions on exam paper.",
+    "Bring required equipment to exam.",
+    "Arrive early to exam hall.",
+    "Stay focused during reading time.",
+    "Allocate time based on marks.",
+    "Cross out mistakes neatly.",
+    "Double-check multiple-choice answers.",
+    "Revise formulas sheet if provided.",
+    "Understand practical applications.",
+    "Memorize required case study statistics.",
+    "Practice map skills in geography.",
+    "Revise themes in literature texts.",
+    "Know calculator exam rules.",
+    "Use black pen unless told otherwise.",
+    "Read source material carefully.",
+    "Identify keywords in source questions.",
+    "Support points with evidence.",
+    "Revise commonly confused topics.",
+    "Do a quick review the night before.",
+    "Avoid learning new topics last minute.",
+    "Stay calm under time pressure.",
+    "Breathe slowly if anxious.",
+    "Trust your preparation.",
+    "Check answers if time remains."
+  ];
+
+  // Pick a random tip on each page load
+  const tipEl = document.getElementById('tip-box');
+  const randomTip = TIPS[Math.floor(Math.random() * TIPS.length)];
+  tipEl.textContent = '"' + randomTip + '"';
+
+  const TARGET = new Date('2026-04-27T00:00:00').getTime();
+  const START  = new Date('2025-09-01T00:00:00').getTime(); // academic year start
+
+  const el = id => document.getElementById(id);
+  let prev = {};
+
+  const pad = (n, len = 2) => String(n).padStart(len, '0');
+
+  function fmtSeconds(s) {
+    if (s > 86400) return Math.floor(s/86400).toLocaleString() + ' days';
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+    return `${h}h ${m}m`;
+  }
+
+  function update() {
+    const now  = Date.now();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      el('clock').style.display = 'none';
+      document.querySelector('.progress-wrap').style.display = 'none';
+      document.querySelector('.progress-label').style.display = 'none';
+      document.querySelector('.info-row').style.display = 'none';
+      el('done').style.display = 'block';
+      return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hrs  = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    const vals = { d: pad(days, 3), h: pad(hrs), m: pad(mins), s: pad(secs) };
+    for (const [key, val] of Object.entries(vals)) {
+      const node = el(key);
+      if (prev[key] !== val) {
+        node.textContent = val;
+        node.classList.remove('tick');
+        void node.offsetWidth;
+        node.classList.add('tick');
+        prev[key] = val;
+      }
+    }
+
+    // Progress
+    const range   = TARGET - START;
+    const elapsed = now - START;
+    const pct = Math.min(100, Math.max(0, (elapsed / range) * 100));
+    el('progress').style.width = pct + '%';
+    el('pct').textContent = pct.toFixed(3) + '%';
+
+    // Remaining seconds display
+    const remSec = Math.floor(diff / 1000);
+    el('rem-s').textContent = fmtSeconds(remSec);
+
+    // Alert level
+    const alertEl = el('status');
+    if (days > 60)      { alertEl.textContent = 'On Track';  alertEl.style.color = 'var(--teal)'; }
+    else if (days > 30) { alertEl.textContent = 'Step It Up'; alertEl.style.color = '#e8c040'; }
+    else if (days > 14) { alertEl.textContent = 'Final Push'; alertEl.style.color = '#e87840'; }
+    else                { alertEl.textContent = 'Crunch Time'; alertEl.style.color = '#e84040'; }
+  }
+
+  update();
+  setInterval(update, 1000);
+</script>
+</body>
+</html>
